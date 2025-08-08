@@ -2,18 +2,17 @@ package sommand.api.v2
 
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
-import java.util.*
+import java.util.Locale
 import kotlin.reflect.KClass
 
 /**
- * Represents a typed argument for a command.
- * Parsing + suggestion providers are unified around SommandSuggestion.
+ * 하나의 명령 인자 정의.
  *
- * @param name Logical name (key) used in parsing map.
- * @param type Kotlin class token to help with diagnostics.
- * @param parser String -> T? parse function.
- * @param suggester (prefix, source) -> List<SommandSuggestion> dynamic provider.
- * @param validator Additional acceptance filter for parsed values.
+ * @param name       인자 논리 이름 (파싱 저장 키)
+ * @param type       리플렉션/디버깅용 타입 토큰
+ * @param parser     문자열 -> T? 파서
+ * @param suggester  (prefix, source) -> List<SommandSuggestion>
+ * @param validator  파싱 후 값 허용 여부 필터
  */
 class CommandArgument<T : Any>(
     val name: String,
@@ -24,8 +23,7 @@ class CommandArgument<T : Any>(
 ) {
 
     /**
-     * Attempts to parse the raw token into target type.
-     * Returns null if parsing fails or validator rejects.
+     * 토큰을 T 로 파싱 (실패 시 null).
      */
     fun parse(token: String): T? {
         val parsed = parser(token) ?: return null
@@ -33,7 +31,7 @@ class CommandArgument<T : Any>(
     }
 
     /**
-     * Provides suggestions given a prefix & command source for contextual filtering.
+     * 탭 완성 후보.
      */
     fun suggest(prefix: String, source: SommandSource): List<SommandSuggestion> =
             suggester(prefix, source).filterFor(prefix, source)
@@ -42,53 +40,44 @@ class CommandArgument<T : Any>(
 
     companion object {
 
-        private fun wrap(values: List<String>): (String, SommandSource) -> List<SommandSuggestion> =
-                { prefix, source ->
-                    values.map { SimpleSommandSuggestion(it) }.filterFor(prefix, source)
-                }
-
         fun string(name: String, allowEmpty: Boolean = false): CommandArgument<String> =
                 CommandArgument(
-                    name,
-                    String::class,
+                    name = name,
+                    type = String::class,
                     parser = { if (!allowEmpty && it.isEmpty()) null else it },
                     suggester = { _, _ -> emptyList() }
                 )
 
         fun greedyString(name: String): CommandArgument<String> =
                 CommandArgument(
-                    name,
-                    String::class,
+                    name = name,
+                    type = String::class,
                     parser = { it },
                     suggester = { _, _ -> emptyList() }
                 )
 
         fun int(name: String, min: Int? = null, max: Int? = null): CommandArgument<Int> =
                 CommandArgument(
-                    name,
-                    Int::class,
+                    name = name,
+                    type = Int::class,
                     parser = { it.toIntOrNull() },
-                    validator = { v ->
-                        (min == null || v >= min) && (max == null || v <= max)
-                    }
+                    validator = { v -> (min == null || v >= min) && (max == null || v <= max) }
                 )
 
         fun double(name: String, min: Double? = null, max: Double? = null): CommandArgument<Double> =
                 CommandArgument(
-                    name,
-                    Double::class,
+                    name = name,
+                    type = Double::class,
                     parser = { it.toDoubleOrNull() },
-                    validator = { v ->
-                        (min == null || v >= min) && (max == null || v <= max)
-                    }
+                    validator = { v -> (min == null || v >= min) && (max == null || v <= max) }
                 )
 
         fun boolean(name: String): CommandArgument<Boolean> =
                 CommandArgument(
-                    name,
-                    Boolean::class,
+                    name = name,
+                    type = Boolean::class,
                     parser = {
-                        when (it.lowercase(Locale.ENGLISH)) {
+                        when (it.toLowerCase(Locale.ROOT)) {
                             "true", "yes", "y", "on", "1" -> true
                             "false", "no", "n", "off", "0" -> false
                             else -> null
@@ -104,24 +93,34 @@ class CommandArgument<T : Any>(
 
         fun player(name: String): CommandArgument<Player> =
                 CommandArgument(
-                    name,
-                    Player::class,
+                    name = name,
+                    type = Player::class,
                     parser = { token -> Bukkit.getPlayerExact(token) },
-                    suggester = { _, _ ->
-                        Bukkit.getOnlinePlayers().map { SimpleSommandSuggestion(it.name) }
+                    suggester = { prefix, _ ->
+                        val lower = prefix.toLowerCase(Locale.ROOT)
+                        Bukkit.getOnlinePlayers()
+                            .asSequence()
+                            .map { it.name }
+                            .filter { lower.isEmpty() || it.toLowerCase(Locale.ROOT).startsWith(lower) }
+                            .map { SimpleSommandSuggestion(it) }
+                            .toList()
                     }
                 )
 
         inline fun <reified E : Enum<E>> enum(name: String): CommandArgument<E> {
-            val values = enumValues<E>().toList()
+            val values: List<E> = enumValues<E>().toList()
             return CommandArgument(
-                name,
-                E::class,
+                name = name,
+                type = E::class,
                 parser = { token ->
                     values.firstOrNull { it.name.equals(token, ignoreCase = true) }
                 },
-                suggester = { _, _ ->
-                    values.map { SimpleSommandSuggestion(it.name.lowercase(Locale.ENGLISH)) }
+                suggester = { prefix, _ ->
+                    val lower = prefix.toLowerCase(Locale.ROOT)
+                    values
+                        .map { it.name.toLowerCase(Locale.ROOT) }
+                        .filter { lower.isEmpty() || it.startsWith(lower) }
+                        .map { SimpleSommandSuggestion(it) }
                 }
             )
         }

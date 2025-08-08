@@ -7,12 +7,14 @@ import sommand.api.v2.SommandSource
 import sommand.api.v2.node.ArgumentNode
 import sommand.api.v2.node.LiteralNode
 import sommand.api.v2.node.SommandNode
+import java.util.Locale
 
 /**
- * 기본 트리 디스패처.
- * 변경 사항:
- *  - CommandContext -> AbstractCommandContext 업캐스팅 가능 구조
- *  - ExecutionScope 에 context 전달
+ * 기본 트리 디스패처 구현.
+ * - Literal 우선 매칭
+ * - Argument 파싱 실패 시 다음 candidate 없음 -> 종료
+ * - Greedy argument 지원
+ * - Suggest 시 SommandSuggestion -> String 값 변환
  */
 class DefaultDispatcher : SommandDispatcher {
 
@@ -22,8 +24,8 @@ class DefaultDispatcher : SommandDispatcher {
         tokens: List<String>,
         root: SommandNode
     ): Boolean {
-        val parsed = mutableMapOf<String, Any>()
-        val matched = walk(root, source, tokens, 0, parsed) ?: return false
+        val parsed: MutableMap<String, Any> = mutableMapOf()
+        val matched: SommandNode = walk(root, source, tokens, 0, parsed) ?: return false
         val executor = matched.executor ?: return false
 
         val ctx: AbstractCommandContext = CommandContext(source, label, tokens, parsed)
@@ -32,7 +34,7 @@ class DefaultDispatcher : SommandDispatcher {
             SommandNode.ExecutionScope(
                 parsedArguments = parsed,
                 context = ctx,
-                trigger = { /* reserved hook */ }
+                trigger = { /* hook reserved */ }
             )
         )
         return true
@@ -52,17 +54,20 @@ class DefaultDispatcher : SommandDispatcher {
         val token = tokens[index]
 
         // Literal 우선
-        val literal = node.children.filterIsInstance<LiteralNode>()
+        val literal: LiteralNode? = node.children
+            .filterIsInstance<LiteralNode>()
             .firstOrNull { it.name.equals(token, ignoreCase = true) && passesPermission(source, it) }
         if (literal != null) {
             return walk(literal, source, tokens, index + 1, parsed)
         }
 
         // Argument
-        val argNode = node.children.filterIsInstance<ArgumentNode>()
+        val argNode: ArgumentNode? = node.children
+            .filterIsInstance<ArgumentNode>()
             .firstOrNull { passesPermission(source, it) && parseArg(it, token, parsed, tokens, index) }
+
         if (argNode != null) {
-            val consumed = if (argNode.greedy) tokens.size - index else 1
+            val consumed: Int = if (argNode.greedy) tokens.size - index else 1
             return walk(argNode, source, tokens, index + consumed, parsed)
         }
 
@@ -77,15 +82,16 @@ class DefaultDispatcher : SommandDispatcher {
         index: Int
     ): Boolean {
         val arg = node.arg
-        if (node.greedy) {
+        return if (node.greedy) {
             val remainder = tokens.subList(index, tokens.size).joinToString(" ")
             val value = arg.parse(remainder) ?: return false
             parsed[arg.name] = value
-            return true
+            true
+        } else {
+            val value = arg.parse(token) ?: return false
+            parsed[arg.name] = value
+            true
         }
-        val value = arg.parse(token) ?: return false
-        parsed[arg.name] = value
-        return true
     }
 
     private fun passesPermission(source: SommandSource, node: SommandNode): Boolean {
@@ -99,7 +105,7 @@ class DefaultDispatcher : SommandDispatcher {
         tokens: List<String>,
         root: SommandNode
     ): List<String> {
-        val parsed = mutableMapOf<String, Any>()
+        val parsed: MutableMap<String, Any> = mutableMapOf()
         return complete(root, source, tokens, 0, parsed)
     }
 
@@ -119,11 +125,15 @@ class DefaultDispatcher : SommandDispatcher {
             return suggestionsForNode(node, source, token)
         }
 
-        val lit = node.children.filterIsInstance<LiteralNode>()
+        val literal: LiteralNode? = node.children
+            .filterIsInstance<LiteralNode>()
             .firstOrNull { it.name.equals(token, ignoreCase = true) && passesPermission(source, it) }
-        if (lit != null) return complete(lit, source, tokens, index + 1, parsed)
+        if (literal != null) {
+            return complete(literal, source, tokens, index + 1, parsed)
+        }
 
-        val argNode = node.children.filterIsInstance<ArgumentNode>()
+        val argNode: ArgumentNode? = node.children
+            .filterIsInstance<ArgumentNode>()
             .firstOrNull {
                 passesPermission(source, it) && it.arg.parse(token)?.let { value ->
                     parsed[it.arg.name] = value
@@ -143,16 +153,29 @@ class DefaultDispatcher : SommandDispatcher {
         source: SommandSource,
         prefix: String
     ): List<String> {
-        val literals = node.children.filterIsInstance<LiteralNode>()
+        val lowerPrefix = prefix.toLowerCase(Locale.ROOT)
+
+        // Literal 후보
+        val literalValues: List<String> = node.children
+            .filterIsInstance<LiteralNode>()
             .filter { passesPermission(source, it) }
             .map { it.name }
-            .filter { it.startsWith(prefix, ignoreCase = true) }
+            .filter { lowerPrefix.isEmpty() || it.toLowerCase(Locale.ROOT).startsWith(lowerPrefix) }
 
-        val arguments = node.children.filterIsInstance<ArgumentNode>()
+        // Argument 후보 (SommandSuggestion -> value)
+        val argumentValues: List<String> = node.children
+            .filterIsInstance<ArgumentNode>()
             .filter { passesPermission(source, it) }
-            .flatMap { argNode -> argNode.arg.suggest(prefix) }
-            .filter { it.startsWith(prefix, ignoreCase = true) }
+            .flatMap { argNode ->
+                argNode.arg.suggest(prefix, source)   // source 전달
+            }
+            .map { it.value }
+            .filter { lowerPrefix.isEmpty() || it.toLowerCase(Locale.ROOT).startsWith(lowerPrefix) }
 
-        return (literals + arguments).distinct().sortedBy { it.lowercase() }
+        val combined: List<String> = (literalValues + argumentValues)
+            .distinct()
+            .sortedBy { it.toLowerCase(Locale.ROOT) }
+
+        return combined
     }
 }
