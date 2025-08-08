@@ -11,10 +11,6 @@ import java.util.Locale
 
 /**
  * 기본 트리 디스패처 구현.
- * - Literal 우선 매칭
- * - Argument 파싱 실패 시 다음 candidate 없음 -> 종료
- * - Greedy argument 지원
- * - Suggest 시 SommandSuggestion -> String 값 변환
  */
 class DefaultDispatcher : SommandDispatcher {
 
@@ -53,7 +49,6 @@ class DefaultDispatcher : SommandDispatcher {
 
         val token = tokens[index]
 
-        // Literal 우선
         val literal: LiteralNode? = node.children
             .filterIsInstance<LiteralNode>()
             .firstOrNull { it.name.equals(token, ignoreCase = true) && passesPermission(source, it) }
@@ -61,7 +56,6 @@ class DefaultDispatcher : SommandDispatcher {
             return walk(literal, source, tokens, index + 1, parsed)
         }
 
-        // Argument
         val argNode: ArgumentNode? = node.children
             .filterIsInstance<ArgumentNode>()
             .firstOrNull { passesPermission(source, it) && parseArg(it, token, parsed, tokens, index) }
@@ -153,29 +147,25 @@ class DefaultDispatcher : SommandDispatcher {
         source: SommandSource,
         prefix: String
     ): List<String> {
-        val lowerPrefix = prefix.toLowerCase(Locale.ROOT)
+        val lowerPrefix = prefix.lowercase(Locale.ROOT)
 
-        // Literal 후보
         val literalValues: List<String> = node.children
             .filterIsInstance<LiteralNode>()
             .filter { passesPermission(source, it) }
             .map { it.name }
-            .filter { lowerPrefix.isEmpty() || it.toLowerCase(Locale.ROOT).startsWith(lowerPrefix) }
+            .filter { lowerPrefix.isEmpty() || it.lowercase(Locale.ROOT).startsWith(lowerPrefix) }
 
-        // Argument 후보 (SommandSuggestion -> value)
         val argumentValues: List<String> = node.children
             .filterIsInstance<ArgumentNode>()
             .filter { passesPermission(source, it) }
             .flatMap { argNode ->
-                argNode.arg.suggest(prefix, source)   // source 전달
+                argNode.arg.suggest(prefix, source)
             }
             .map { it.value }
-            .filter { lowerPrefix.isEmpty() || it.toLowerCase(Locale.ROOT).startsWith(lowerPrefix) }
+            .filter { lowerPrefix.isEmpty() || it.lowercase(Locale.ROOT).startsWith(lowerPrefix) }
 
-        val combined: List<String> = (literalValues + argumentValues)
+        return (literalValues + argumentValues)
             .distinct()
-            .sortedBy { it.toLowerCase(Locale.ROOT) }
-
-        return combined
+            .sortedBy { it.lowercase(Locale.ROOT) }
     }
 }

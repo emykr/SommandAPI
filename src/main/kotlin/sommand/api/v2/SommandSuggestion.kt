@@ -4,10 +4,6 @@ import java.util.Locale
 
 /**
  * Represents a single tab-completion suggestion.
- *
- * value       : 실제로 탭 확정 시 커맨드 라인에 들어갈 문자열
- * tooltip     : (현재 Bukkit 기본 탭에서는 표시되지 않지만) 향후 Brigadier/Adventure 적용 대비 설명
- * permission  : 이 suggestion 을 노출하기 위한 추가 퍼미션 (노드 퍼미션과 별개, null 이면 무조건 통과)
  */
 interface SommandSuggestion {
     val value: String
@@ -29,21 +25,12 @@ data class SimpleSommandSuggestion(
  */
 object Suggestions {
 
-    /**
-     * 간단한 문자열 배열을 SommandSuggestion 리스트로 변환.
-     */
     fun of(vararg values: String): List<SommandSuggestion> =
             values.map { SimpleSommandSuggestion(it) }
 
-    /**
-     * value -> tooltip 맵을 suggestion 리스트로 변환.
-     */
     fun withTooltips(map: Map<String, String>): List<SommandSuggestion> =
             map.map { (k, v) -> SimpleSommandSuggestion(k, v) }
 
-    /**
-     * 빌더 스타일 생성.
-     */
     inline fun build(block: MutableList<SommandSuggestion>.() -> Unit): List<SommandSuggestion> {
         val list = mutableListOf<SommandSuggestion>()
         list.block()
@@ -53,19 +40,21 @@ object Suggestions {
 
 /**
  * prefix / permission 필터링 + 정렬.
+ * permission 은 인터페이스 프로퍼티라 스마트 캐스트 불가 -> 지역 변수에 담아서 사용.
  */
 fun List<SommandSuggestion>.filterFor(prefix: String, source: SommandSource): List<SommandSuggestion> {
-    if (this.isEmpty()) return this
-    val lowerPrefix = prefix.toLowerCase(Locale.ROOT)
+    if (isEmpty()) return this
+    val lowerPrefix = prefix.lowercase(Locale.ROOT)
     return this
         .filter { s ->
-            (s.permission == null || source.sender.hasPermission(s.permission)) &&
-                    (prefix.isEmpty() || s.value.toLowerCase(Locale.ROOT).startsWith(lowerPrefix))
+            val perm = s.permission
+            (perm == null || source.sender.hasPermission(perm)) &&
+                    (prefix.isEmpty() || s.value.lowercase(Locale.ROOT).startsWith(lowerPrefix))
         }
-        .sortedBy { it.value.toLowerCase(Locale.ROOT) }
+        .sortedBy { it.value.lowercase(Locale.ROOT) }
 }
 
 /**
- * SommandSuggestion 리스트를 문자열 값 리스트로 변환.
+ * 문자열 값 리스트로 변환.
  */
-fun List<SommandSuggestion>.toValues(): List<String> = this.map { it.value }
+fun List<SommandSuggestion>.toValues(): List<String> = map { it.value }

@@ -7,12 +7,6 @@ import kotlin.reflect.KClass
 
 /**
  * 하나의 명령 인자 정의.
- *
- * @param name       인자 논리 이름 (파싱 저장 키)
- * @param type       리플렉션/디버깅용 타입 토큰
- * @param parser     문자열 -> T? 파서
- * @param suggester  (prefix, source) -> List<SommandSuggestion>
- * @param validator  파싱 후 값 허용 여부 필터
  */
 class CommandArgument<T : Any>(
     val name: String,
@@ -22,17 +16,11 @@ class CommandArgument<T : Any>(
     private val validator: (T) -> Boolean = { true }
 ) {
 
-    /**
-     * 토큰을 T 로 파싱 (실패 시 null).
-     */
     fun parse(token: String): T? {
         val parsed = parser(token) ?: return null
         return if (validator(parsed)) parsed else null
     }
 
-    /**
-     * 탭 완성 후보.
-     */
     fun suggest(prefix: String, source: SommandSource): List<SommandSuggestion> =
             suggester(prefix, source).filterFor(prefix, source)
 
@@ -77,7 +65,7 @@ class CommandArgument<T : Any>(
                     name = name,
                     type = Boolean::class,
                     parser = {
-                        when (it.toLowerCase(Locale.ROOT)) {
+                        when (it.lowercase(Locale.ROOT)) {
                             "true", "yes", "y", "on", "1" -> true
                             "false", "no", "n", "off", "0" -> false
                             else -> null
@@ -97,11 +85,11 @@ class CommandArgument<T : Any>(
                     type = Player::class,
                     parser = { token -> Bukkit.getPlayerExact(token) },
                     suggester = { prefix, _ ->
-                        val lower = prefix.toLowerCase(Locale.ROOT)
+                        val lower = prefix.lowercase(Locale.ROOT)
                         Bukkit.getOnlinePlayers()
                             .asSequence()
                             .map { it.name }
-                            .filter { lower.isEmpty() || it.toLowerCase(Locale.ROOT).startsWith(lower) }
+                            .filter { lower.isEmpty() || it.lowercase(Locale.ROOT).startsWith(lower) }
                             .map { SimpleSommandSuggestion(it) }
                             .toList()
                     }
@@ -116,9 +104,9 @@ class CommandArgument<T : Any>(
                     values.firstOrNull { it.name.equals(token, ignoreCase = true) }
                 },
                 suggester = { prefix, _ ->
-                    val lower = prefix.toLowerCase(Locale.ROOT)
+                    val lower = prefix.lowercase(Locale.ROOT)
                     values
-                        .map { it.name.toLowerCase(Locale.ROOT) }
+                        .map { it.name.lowercase(Locale.ROOT) }
                         .filter { lower.isEmpty() || it.startsWith(lower) }
                         .map { SimpleSommandSuggestion(it) }
                 }
