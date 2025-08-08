@@ -1,5 +1,6 @@
 package sommand.api.v2.impl
 
+import sommand.api.v2.AbstractCommandContext
 import sommand.api.v2.CommandContext
 import sommand.api.v2.SommandDispatcher
 import sommand.api.v2.SommandSource
@@ -8,11 +9,10 @@ import sommand.api.v2.node.LiteralNode
 import sommand.api.v2.node.SommandNode
 
 /**
- * Default tree-walk dispatcher.
- *
- * Resolution order within a level:
- * 1. Literal matches (case-insensitive)
- * 2. First argument node that successfully parses.
+ * 기본 트리 디스패처.
+ * 변경 사항:
+ *  - CommandContext -> AbstractCommandContext 업캐스팅 가능 구조
+ *  - ExecutionScope 에 context 전달
  */
 class DefaultDispatcher : SommandDispatcher {
 
@@ -25,11 +25,15 @@ class DefaultDispatcher : SommandDispatcher {
         val parsed = mutableMapOf<String, Any>()
         val matched = walk(root, source, tokens, 0, parsed) ?: return false
         val executor = matched.executor ?: return false
-        val ctx = CommandContext(source, label, tokens, parsed)
+
+        val ctx: AbstractCommandContext = CommandContext(source, label, tokens, parsed)
+
         executor.invoke(
-            SommandNode.ExecutionScope(parsed) {
-                // optional chaining actions can be added later
-            }
+            SommandNode.ExecutionScope(
+                parsedArguments = parsed,
+                context = ctx,
+                trigger = { /* reserved hook */ }
+            )
         )
         return true
     }
@@ -47,25 +51,21 @@ class DefaultDispatcher : SommandDispatcher {
 
         val token = tokens[index]
 
-        // Try literal children first
+        // Literal 우선
         val literal = node.children.filterIsInstance<LiteralNode>()
             .firstOrNull { it.name.equals(token, ignoreCase = true) && passesPermission(source, it) }
-
         if (literal != null) {
             return walk(literal, source, tokens, index + 1, parsed)
         }
 
-        // Then argument children
+        // Argument
         val argNode = node.children.filterIsInstance<ArgumentNode>()
             .firstOrNull { passesPermission(source, it) && parseArg(it, token, parsed, tokens, index) }
-
         if (argNode != null) {
             val consumed = if (argNode.greedy) tokens.size - index else 1
-            val nextIndex = index + consumed
-            return walk(argNode, source, tokens, nextIndex, parsed)
+            return walk(argNode, source, tokens, index + consumed, parsed)
         }
 
-        // If we cannot advance, but current node can execute and no more tokens expected.
         return if (node.hasExecutor() && index == tokens.size) node else null
     }
 
@@ -78,10 +78,8 @@ class DefaultDispatcher : SommandDispatcher {
     ): Boolean {
         val arg = node.arg
         if (node.greedy) {
-            // Combine remaining tokens
-            val remainder = tokens.subList(index, tokens.size)
-            val joined = remainder.joinToString(" ")
-            val value = arg.parse(joined) ?: return false
+            val remainder = tokens.subList(index, tokens.size).joinToString(" ")
+            val value = arg.parse(remainder) ?: return false
             parsed[arg.name] = value
             return true
         }
@@ -113,23 +111,18 @@ class DefaultDispatcher : SommandDispatcher {
         parsed: MutableMap<String, Any>
     ): List<String> {
         if (index >= tokens.size) {
-            // Provide next-level suggestions (literals + arg suggestions)
             return suggestionsForNode(node, source, "")
         }
 
         val token = tokens[index]
         if (index == tokens.lastIndex) {
-            // Provide suggestions for this position
             return suggestionsForNode(node, source, token)
         }
 
-        // We must move deeper
-        // Literal match
         val lit = node.children.filterIsInstance<LiteralNode>()
             .firstOrNull { it.name.equals(token, ignoreCase = true) && passesPermission(source, it) }
         if (lit != null) return complete(lit, source, tokens, index + 1, parsed)
 
-        // Argument match
         val argNode = node.children.filterIsInstance<ArgumentNode>()
             .firstOrNull {
                 passesPermission(source, it) && it.arg.parse(token)?.let { value ->
@@ -155,12 +148,11 @@ class DefaultDispatcher : SommandDispatcher {
             .map { it.name }
             .filter { it.startsWith(prefix, ignoreCase = true) }
 
-        val argumentSuggestions = node.children.filterIsInstance<ArgumentNode>()
+        val arguments = node.children.filterIsInstance<ArgumentNode>()
             .filter { passesPermission(source, it) }
-            .flatMap { argNode ->
-                argNode.arg.suggest(prefix)
-            }
+            .flatMap { argNode -> argNode.arg.suggest(prefix) }
+            .filter { it.startsWith(prefix, ignoreCase = true) }
 
-        return (literals + argumentSuggestions).distinct().sorted()
+        return (literals + arguments).distinct().sortedBy { it.lowercase() }
     }
 }
