@@ -1,12 +1,24 @@
 package sommand.api.v2.node
 
-import sommand.api.v2.CommandArgument
-
 /**
- * (Retained empty original file name now populated.)
- * See implementation in combined nodes file for actual logic.
- * This file simply re-exports the class so existing references remain valid.
+ * This file intentionally left without a separate ArgumentNode class definition to avoid
+ * redeclaration conflicts.
+ *
+ * The real implementation of:
+ *  - sealed class SommandNode
+ *  - class ArgumentNode(...)
+ *  - class LiteralNode(...)
+ *  - class RootNode(...)
+ *
+ * lives in SommandNode.kt within the same package.
+ *
+ * Keeping this file (instead of deleting) preserves any historical imports or references,
+ * while preventing a duplicate class definition that caused:
+ *  - Redeclaration: class ArgumentNode
+ *  - "Too many arguments for constructor" errors
+ *
+ * If you previously imported `sommand.api.v2.node.ArgumentNode`, it will now correctly
+ * resolve to the implementation inside SommandNode.kt.
  */
-class ArgumentNode (
-    val exported: CommandArgument<*>
-)
+@Suppress("unused")
+internal object ArgumentNodeFileMarker
