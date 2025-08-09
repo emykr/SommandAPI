@@ -14,15 +14,6 @@ repositories {
         name = "papermc-repo"
     }
     maven("https://jitpack.io")
-    // GitHub Packages (프라이빗 패키지도 포함)
-    maven {
-        name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/emykr/SommandAPI")
-        credentials {
-            username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-            password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
-        }
-    }
 }
 
 dependencies {
