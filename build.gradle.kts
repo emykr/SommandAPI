@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.2.20-Beta2"
     id("com.gradleup.shadow") version "8.3.0"
     `maven-publish`
+    signing
 }
 
 group = "io.github.emykr.sommand.api.v2"
@@ -38,6 +39,8 @@ tasks.jar { enabled = false } // 기본 JAR 비활성화, shadowJar만 생성
 tasks.shadowJar {
     archiveClassifier.set("") // all 제거 → 기본 이름으로 사용
 }
+
+
 
 publishing {
     publications {
