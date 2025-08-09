@@ -1,6 +1,6 @@
-package io.github.emykr.sommand.api.v2.dsl
+package com.github.emykr.dsl
 
-import io.github.emykr.sommand.api.v2.CommandArgument
+import com.github.emykr.CommandArgument
 
 /**
  * Convenience re-export factories inside DSL scope.

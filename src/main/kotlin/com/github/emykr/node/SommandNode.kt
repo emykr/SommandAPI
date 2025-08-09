@@ -1,7 +1,7 @@
-package io.github.emykr.sommand.api.v2.node
+package com.github.emykr.node
 
-import io.github.emykr.sommand.api.v2.AbstractCommandContext
-import io.github.emykr.sommand.api.v2.CommandArgument
+import com.github.emykr.AbstractCommandContext
+import com.github.emykr.CommandArgument
 
 /**
  * 명령 트리의 노드 기본 모델.

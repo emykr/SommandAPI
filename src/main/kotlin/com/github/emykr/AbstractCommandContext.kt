@@ -1,4 +1,4 @@
-package io.github.emykr.sommand.api.v2
+package com.github.emykr
 
 /**
  * Abstract base for command execution context.

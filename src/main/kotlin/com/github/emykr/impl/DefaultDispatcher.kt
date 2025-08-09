@@ -1,12 +1,12 @@
-package io.github.emykr.sommand.api.v2.impl
+package com.github.emykr.impl
 
-import io.github.emykr.sommand.api.v2.AbstractCommandContext
-import io.github.emykr.sommand.api.v2.CommandContext
-import io.github.emykr.sommand.api.v2.SommandDispatcher
-import io.github.emykr.sommand.api.v2.SommandSource
-import io.github.emykr.sommand.api.v2.node.ArgumentNode
-import io.github.emykr.sommand.api.v2.node.LiteralNode
-import io.github.emykr.sommand.api.v2.node.SommandNode
+import com.github.emykr.AbstractCommandContext
+import com.github.emykr.CommandContext
+import com.github.emykr.SommandDispatcher
+import com.github.emykr.SommandSource
+import com.github.emykr.node.ArgumentNode
+import com.github.emykr.node.LiteralNode
+import com.github.emykr.node.SommandNode
 import java.util.Locale
 
 /**

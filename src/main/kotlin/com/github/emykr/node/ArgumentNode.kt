@@ -1,4 +1,4 @@
-package io.github.emykr.sommand.api.v2.node
+package com.github.emykr.node
 
 /**
  * This file intentionally left without a separate ArgumentNode class definition to avoid

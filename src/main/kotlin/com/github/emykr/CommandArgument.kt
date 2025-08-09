@@ -1,4 +1,4 @@
-package io.github.emykr.sommand.api.v2
+package com.github.emykr
 
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player

@@ -1,8 +1,8 @@
-package io.github.emykr.sommand.api.v2
+package com.github.emykr
 
+import com.github.emykr.dsl.SommandBuilder
 import org.bukkit.plugin.java.JavaPlugin
-import io.github.emykr.sommand.api.v2.dsl.SommandBuilder
-import io.github.emykr.sommand.api.v2.loader.SommandLoader
+import com.github.emykr.loader.SommandLoader
 
 /**
  * Facade entry point for the library.

@@ -1,4 +1,4 @@
-package io.github.emykr.sommand.api.v2.node
+package com.github.emykr.node
 
 /**
  * Compatibility helper ensuring older imports referencing SommandNode (empty stub previously)

@@ -5,7 +5,7 @@ plugins {
     signing
 }
 
-group = "io.github.emykr.sommand.api.v2"
+group = "com.github.emykr"
 version = "1.3-${System.currentTimeMillis()}" // SNAPSHOT 덮어쓰기 방지
 
 
