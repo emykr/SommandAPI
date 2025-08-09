@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.emykr.sommand.api.v2"
-version = "1.2-${System.currentTimeMillis()}" // SNAPSHOT 덮어쓰기 방지
+version = "1.3-${System.currentTimeMillis()}" // SNAPSHOT 덮어쓰기 방지
 
 repositories {
     mavenCentral()
