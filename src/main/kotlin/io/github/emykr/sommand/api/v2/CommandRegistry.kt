@@ -1,6 +1,6 @@
 package io.github.emykr.sommand.api.v2
 
-import sommand.api.v2.node.RootNode
+import io.github.emykr.sommand.api.v2.node.RootNode
 import java.util.concurrent.ConcurrentHashMap
 
 /**

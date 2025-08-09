@@ -9,12 +9,12 @@ import org.bukkit.permissions.Permission
 import org.bukkit.permissions.PermissionDefault
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
-import sommand.api.v2.BukkitSommandSource
-import sommand.api.v2.CommandRegistry
-import sommand.api.v2.SommandDispatcher
-import sommand.api.v2.dsl.SommandBuilder
-import sommand.api.v2.impl.DefaultDispatcher
-import sommand.api.v2.node.RootNode
+import io.github.emykr.sommand.api.v2.BukkitSommandSource
+import io.github.emykr.sommand.api.v2.CommandRegistry
+import io.github.emykr.sommand.api.v2.SommandDispatcher
+import io.github.emykr.sommand.api.v2.dsl.SommandBuilder
+import io.github.emykr.sommand.api.v2.impl.DefaultDispatcher
+import io.github.emykr.sommand.api.v2.node.RootNode
 import java.lang.reflect.Field
 
 /**
@@ -48,7 +48,7 @@ class SommandLoader(
     }
 
     private fun walkRegisterPermissions(
-        node: sommand.api.v2.node.SommandNode,
+        node: io.github.emykr.sommand.api.v2.node.SommandNode,
         pluginManager: org.bukkit.plugin.PluginManager,
         added: MutableSet<String>
     ) {

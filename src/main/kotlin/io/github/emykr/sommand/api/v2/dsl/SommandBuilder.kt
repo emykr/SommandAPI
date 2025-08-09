@@ -1,9 +1,9 @@
 package io.github.emykr.sommand.api.v2.dsl
 
 import org.bukkit.plugin.java.JavaPlugin
-import sommand.api.v2.CommandArgument
-import sommand.api.v2.CommandRegistry
-import sommand.api.v2.node.*
+import io.github.emykr.sommand.api.v2.CommandArgument
+import io.github.emykr.sommand.api.v2.CommandRegistry
+import io.github.emykr.sommand.api.v2.node.*
 
 /**
  * DSL entry builder for defining one or multiple commands.
@@ -128,5 +128,5 @@ class CommandTreeBuilder internal constructor(
  * Top-level DSL function.
  */
 fun sommand(plugin: JavaPlugin, block: SommandBuilder.() -> Unit) {
-    sommand.api.v2.SommandImpl.load(plugin, block)
+    io.github.emykr.sommand.api.v2.SommandImpl.load(plugin, block)
 }

@@ -1,6 +1,6 @@
 package io.github.emykr.sommand.api.v2
 
-import sommand.api.v2.node.SommandNode
+import io.github.emykr.sommand.api.v2.node.SommandNode
 
 /**
  * Dispatcher interface so alternative dispatch strategies can be added.
