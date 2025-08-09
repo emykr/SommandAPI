@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.emykr"
-version = "1.6.0" // SNAPSHOT 덮어쓰기 방지
+version = "1.0.0" // SNAPSHOT 덮어쓰기 방지
 
 //repositories {
 //    mavenCentral()
@@ -34,27 +34,27 @@ tasks.shadowJar {
 
 
 
-publishing {
-    publications {
-        create("gpr", MavenPublication::class) {
-            groupId = project.group.toString()
-            artifactId = "SommandAPI"
-            version = project.version.toString()
-
-            artifact(tasks.shadowJar.get()) {
-                builtBy(tasks.shadowJar)
-            }
-        }
-    }
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/emykr/SommandAPI")
-            credentials {
-                username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
-                password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
-            }
-        }
-    }
-}
+//publishing {
+//    publications {
+//        create("gpr", MavenPublication::class) {
+//            groupId = project.group.toString()
+//            artifactId = "SommandAPI"
+//            version = project.version.toString()
+//
+//            artifact(tasks.shadowJar.get()) {
+//                builtBy(tasks.shadowJar)
+//            }
+//        }
+//    }
+//    repositories {
+//        maven {
+//            name = "GitHubPackages"
+//            url = uri("https://maven.pkg.github.com/emykr/SommandAPI")
+//            credentials {
+//                username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
+//                password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
+//            }
+//        }
+//    }
+//}
 
