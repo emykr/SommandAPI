@@ -48,8 +48,8 @@ publishing {
     }
     repositories {
         maven {
-            name = "OSSRH"
-            url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/emykr/SommandAPI")
             credentials {
                 username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
                 password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
