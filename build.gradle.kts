@@ -6,15 +6,15 @@ plugins {
 }
 
 group = "com.github.emykr"
-version = "1.5.0" // SNAPSHOT 덮어쓰기 방지
+version = "1.6.0" // SNAPSHOT 덮어쓰기 방지
 
-repositories {
-    mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/") {
-        name = "papermc-repo"
-    }
-    maven("https://jitpack.io")
-}
+//repositories {
+//    mavenCentral()
+//    maven("https://repo.papermc.io/repository/maven-public/") {
+//        name = "papermc-repo"
+//    }
+//    maven("https://jitpack.io")
+//}
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
