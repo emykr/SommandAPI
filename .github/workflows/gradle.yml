@@ -1,34 +1,32 @@
-name: Publish to GitHub Packages
+# 이 워크플로는 GitHub에서 인증되지 않은 작업을 사용합니다.
+# 작업은 타사에서 제공하며
+# 별도의 서비스 약관, 개인정보처리방침, 지원 설명서에서 규정됩니다.
+# 참조하세요.
 
+# 커밋 SHA에 작업을 고정하는 것이 좋습니다.
+# 최신 버전을 얻으려면 SHA를 업데이트해야 합니다.
+# 태그 또는 분기를 참조할 수도 있지만 경고 없이 작업이 변경될 수 있습니다.
+
+name: Publish package to the Maven Central Repository
 on:
-  push:
-    branches:
-      - 1.20.1
-  workflow_dispatch:  # 수동 실행 가능
-
-permissions:
-  contents: read
-  packages: write
-
+  release:
+    types: [created]
 jobs:
   publish:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
+      - uses: actions/checkout@v4
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Grant execute permission for Gradlew
-        run: chmod +x ./gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4.0.0
 
-      - name: Publish to GitHub Packages
-        env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish package
         run: ./gradlew publish
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}

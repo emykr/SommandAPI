@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.emykr"
-version = "1.3-${System.currentTimeMillis()}" // SNAPSHOT 덮어쓰기 방지
+version = "1.5.0" // SNAPSHOT 덮어쓰기 방지
 
 repositories {
     mavenCentral()
@@ -36,21 +36,25 @@ tasks.shadowJar {
 
 publishing {
     publications {
-        register<MavenPublication>("gpr") {
-            groupId = "com.github.emykr"
+        create("gpr", MavenPublication::class) {
+            groupId = project.group.toString()
             artifactId = "SommandAPI"
             version = project.version.toString()
-            artifact(tasks.shadowJar.get()) // shadowJar만 퍼블리시
+
+            artifact(tasks.shadowJar.get()) {
+                builtBy(tasks.shadowJar)
+            }
         }
     }
     repositories {
         maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/emykr/SommandAPI")
+            name = "OSSRH"
+            url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: "emykr"
-                password = System.getenv("GITHUB_TOKEN") ?: "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"
+                username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
+                password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
             }
         }
     }
 }
+
