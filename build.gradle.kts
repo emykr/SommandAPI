@@ -8,6 +8,22 @@ plugins {
 group = "com.github.emykr"
 version = "1.3-${System.currentTimeMillis()}" // SNAPSHOT 덮어쓰기 방지
 
+repositories {
+    mavenCentral()
+    maven("https://repo.papermc.io/repository/maven-public/") {
+        name = "papermc-repo"
+    }
+    maven("https://jitpack.io")
+    // GitHub Packages (프라이빗 패키지도 포함)
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/emykr/SommandAPI")
+        credentials {
+            username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
