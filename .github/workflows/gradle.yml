@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - 1.20.1
-  workflow_dispatch: # 수동 실행도 가능
+  workflow_dispatch:  # 수동 실행 가능
 
 permissions:
   contents: read
@@ -25,10 +25,10 @@ jobs:
           java-version: 17
 
       - name: Grant execute permission for Gradlew
-        run: chmod +x gradlew
+        run: chmod +x ./gradlew
 
-      - name: Build & Publish to GitHub Packages
+      - name: Publish to GitHub Packages
         env:
           GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # write:packages 권한 자동 부여
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew publish
