@@ -30,7 +30,7 @@ tasks.shadowJar {
 publishing {
     publications {
         register<MavenPublication>("gpr") {
-            groupId = "io.github.emykr.sommand.api.v2"
+            groupId = "com.github.emykr"
             artifactId = "SommandAPI"
             version = project.version.toString()
             artifact(tasks.shadowJar.get()) // shadowJar만 퍼블리시
