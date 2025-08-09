@@ -1,4 +1,4 @@
-package sommand.api.v2
+package io.github.emykr.sommand.api.v2
 
 import org.bukkit.plugin.java.JavaPlugin
 import sommand.api.v2.dsl.SommandBuilder

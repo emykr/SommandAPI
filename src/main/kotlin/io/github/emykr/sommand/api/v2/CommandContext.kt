@@ -1,4 +1,4 @@
-package sommand.api.v2
+package io.github.emykr.sommand.api.v2
 
 /**
  * 기본 구현 컨텍스트.

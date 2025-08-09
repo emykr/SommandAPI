@@ -4,7 +4,7 @@ plugins {
     `maven-publish`
 }
 
-group = "sommand.api.v2"
+group = "io.github.emykr.sommand.api.v2"
 version = "1.2-${System.currentTimeMillis()}" // SNAPSHOT 덮어쓰기 방지
 
 repositories {
@@ -42,7 +42,7 @@ tasks.shadowJar {
 publishing {
     publications {
         register<MavenPublication>("gpr") {
-            groupId = "sommand.api.v2"
+            groupId = "io.github.emykr.sommand.api.v2"
             artifactId = "SommandAPI"
             version = project.version.toString()
             artifact(tasks.shadowJar.get()) // shadowJar만 퍼블리시

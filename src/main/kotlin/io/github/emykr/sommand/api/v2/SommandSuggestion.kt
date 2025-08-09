@@ -1,4 +1,4 @@
-package sommand.api.v2
+package io.github.emykr.sommand.api.v2
 
 import java.util.Locale
 

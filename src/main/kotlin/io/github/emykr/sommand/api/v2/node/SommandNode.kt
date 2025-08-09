@@ -1,4 +1,4 @@
-package sommand.api.v2.node
+package io.github.emykr.sommand.api.v2.node
 
 import sommand.api.v2.AbstractCommandContext
 import sommand.api.v2.CommandArgument

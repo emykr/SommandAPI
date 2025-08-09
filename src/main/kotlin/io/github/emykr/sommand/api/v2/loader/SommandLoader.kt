@@ -1,4 +1,4 @@
-package sommand.api.v2.loader
+package io.github.emykr.sommand.api.v2.loader
 
 import org.bukkit.Bukkit
 import org.bukkit.command.Command

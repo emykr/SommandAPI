@@ -1,4 +1,4 @@
-package sommand.api.v2.impl
+package io.github.emykr.sommand.api.v2.impl
 
 import sommand.api.v2.AbstractCommandContext
 import sommand.api.v2.CommandContext
