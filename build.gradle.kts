@@ -48,8 +48,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/emykr/SommandAPI")
             credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+                username = System.getenv("GITHUB_ACTOR") ?: "emykr"
+                password = System.getenv("GITHUB_TOKEN") ?: "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"
             }
         }
     }
