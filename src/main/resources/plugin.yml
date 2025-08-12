@@ -1,0 +1,9 @@
+name: ConcertPack
+version: '1.0-SNAPSHOT'
+main: kr.chayyo.concertpack.Concert
+api-version: '1.20'
+prefix: CP
+load: STARTUP
+authors: [ chayyo ]
+libraries:
+  - org.jetbrains.kotlin:kotlin-reflect:2.2.20-Beta2

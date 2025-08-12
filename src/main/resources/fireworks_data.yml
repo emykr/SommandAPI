@@ -1,0 +1,38 @@
+# 폭죽 설정 위치
+
+
+all_fireworks:
+  # 여러 색깔 적용 가능.
+  # color: "RED,PINK"
+  # RGB 값 가능
+  # color: "255,0,0"
+   color: "RED"
+   type: "STAR"
+   duration: 5
+   direction: "UP"
+
+
+
+# 폭죽 위치
+firework_pos:
+
+  fw1:
+  fw2:
+  fw3:
+  fw4:
+  fw5:
+  fw6:
+  fw7:
+  fw8:
+  fw9:
+  fw10:
+  fw11:
+  fw12:
+  fw13:
+  fw14:
+  fw15:
+  fw16:
+  fw17:
+  fw18:
+  fw19:
+  fw20:
