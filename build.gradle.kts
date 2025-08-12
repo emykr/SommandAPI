@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.emykr"
-version = "1.0.0" // SNAPSHOT 덮어쓰기 방지
+version = "1.7.1" // SNAPSHOT 덮어쓰기 방지
 
 //repositories {
 //    mavenCentral()
