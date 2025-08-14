@@ -20,13 +20,14 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation(kotlin("reflect"))
+    implementation("com.github.emykr:SommandAPI:1.20.1-SNAPSHOT")
 }
 
 kotlin {
     jvmToolchain(17)
 }
 
-tasks.jar { enabled = false } // 기본 JAR 비활성화, shadowJar만 생성
+//tasks.jar { enabled = false } // 기본 JAR 비활성화, shadowJar만 생성
 
 tasks.shadowJar {
     archiveClassifier.set("") // all 제거 → 기본 이름으로 사용
@@ -34,27 +35,16 @@ tasks.shadowJar {
 
 
 
-//publishing {
-//    publications {
-//        create("gpr", MavenPublication::class) {
-//            groupId = project.group.toString()
-//            artifactId = "SommandAPI"
-//            version = project.version.toString()
-//
-//            artifact(tasks.shadowJar.get()) {
-//                builtBy(tasks.shadowJar)
-//            }
-//        }
-//    }
-//    repositories {
-//        maven {
-//            name = "GitHubPackages"
-//            url = uri("https://maven.pkg.github.com/emykr/SommandAPI")
-//            credentials {
-//                username = project.findProperty("ossrhUsername") as String? ?: System.getenv("OSSRH_USERNAME")
-//                password = project.findProperty("ossrhPassword") as String? ?: System.getenv("OSSRH_PASSWORD")
-//            }
-//        }
-//    }
-//}
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            pom {
+                name.set("SommandAPI")
+                description.set("API for XYZ")
+                url.set("https://github.com/emykr/SommandAPI")
+            }
+        }
+    }
+}
 
