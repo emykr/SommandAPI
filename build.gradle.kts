@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.emykr"
-version = "1.7.1" // SNAPSHOT 덮어쓰기 방지
+version = "1.7.2" // SNAPSHOT 덮어쓰기 방지
 
 //repositories {
 //    mavenCentral()
@@ -20,7 +20,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation(kotlin("reflect"))
-    implementation("com.github.emykr:SommandAPI:1.20.1-SNAPSHOT")
+    //mplementation("com.github.emykr:SommandAPI:1.20.1-SNAPSHOT")
 }
 
 kotlin {
