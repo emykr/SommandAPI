@@ -22,5 +22,6 @@ class CommandContext(
         return value as T
     }
 
+
     override fun all(): Map<String, Any> = parsed.toMap()
 }
