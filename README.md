@@ -11,5 +11,6 @@ repositories {
 
 
 dependencies {
-    implementation("com.github.emykr:SommandAPI:v1.7.2"}
+    implementation("com.github.emykr:SommandAPI:v1.7.2")
+}
 ```
