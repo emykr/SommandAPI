@@ -4,7 +4,6 @@
 
 SommandAPI 는 Bukkit/Paper 환경에서 선언형 DSL 로 명령 트리를 정의하고 자동으로 권한/등록/실행을 처리하는 경량 라이브러리입니다.
 
-이 문서는 라이브러리 사용을 빠르게 시작할 수 있도록 DSL 구조와 핵심 개념을 예제와 함께 설명합니다.
 
 ## 설치 (Installation)
 
@@ -52,22 +51,6 @@ Maven:
   </dependency>
 </dependencies>
 ```
-
----
-
-## 핵심 구성 요소 개요
-
-| 구성요소 | 역할 |
-|---------|------|
-| `SommandLoader` | DSL 블록 실행 및 Bukkit `CommandMap` 등록, Permission 노드 자동 등록 |
-| `SommandBuilder` | 한 번의 `load { }` 블록 안에서 여러 root 명령 정의 |
-| `CommandTreeBuilder` | `command { ... }` 내부에서 literal / argument / 실행 블록 체이닝 |
-| `CommandRegistry` | 등록된 root 명령 캐시 (이름/별칭 매핑) |
-| `RootNode`, `LiteralNode`, `ArgumentNode` | 내부 명령 트리 노드 구조 |
-| `CommandArgument<T>` | 인자 파싱 로직을 구현하는 추상/인터페이스 형태 (직접/내장 구현 사용) |
-| `SommandNode.ExecutionScope` | 실행 시점 컨텍스트 (인자 접근, sender 접근 등) |
-
-(실행 컨텍스트에서의 구체적 accessor 메서드는 실제 소스에 맞게 문서화하세요.)
 
 ---
 
@@ -336,10 +319,10 @@ SommandLoader(this, dispatcher = LoggingDispatcher()).load {
 
 ---
 
-## FAQ (예시)
+## FAQ
 
 Q. plugin.yml 에 명령을 등록해야 하나요?  
-A. 동적 등록으로 작동하므로 필수는 아니나, 자동 탭 완성/헬프 통합을 위해 최소 root 를 plugin.yml 에 정의하기를 선택적으로 고려할 수 있습니다. (문서화 시 실제 환경 테스트 후 확정)
+A. 동적 등록이 작동하므로 plugin.yml에 등록은 선택입니다.
 
 Q. 별칭(alias) 충돌 시 어떻게 되나요?  
 A. `CommandRegistry.add()` 는 첫 등록 alias 를 기준으로 추가하며, 이미 존재하는 별칭은 덮어쓰지 않습니다(`putIfAbsent`). 충돌 가능성은 사전에 방지하세요.
@@ -349,48 +332,6 @@ A. 일반적으로 greedy(남은 토큰 흡수) 뒤에는 추가 파싱이 불�
 
 ---
 
-## 기여 (Contributing)
 
-1. Fork & branch (`feat/<topic>`)
-2. 테스트 / 로컬 서버 검증
-3. README / KDoc 반영
-4. Pull Request: 변경 이유, 사용 예시 포함
 
-이슈 작성 시 포함:
-- 환경 (Paper 버전 등)
-- 재현 단계
-- 기대 / 실제 결과
-- 관련 스택트레이스
 
----
-
-## 라이선스 (License)
-
-(라이선스 파일 확인 후 간단 요약 + 링크)
-
-예: MIT License — 자세한 내용은 [LICENSE](LICENSE) 참조.
-
----
-
-## 변경 로그 (Changelog)
-
-태그 기반 배포 (JitPack). `vX.Y.Z`:
-- Patch: 버그 수정 (호환성 유지)
-- Minor: 하위 호환 기능 추가
-- Major: 호환성 깨짐
-
-CHANGELOG.md 가 있다면 링크 추가.
-
----
-
-## 다음 보강 권장 (실제 코드 기반 문서화)
-
-- ExecutionScope 의 실제 메서드 / 프로퍼티 표
-- 내장 Argument 타입 목록 표
-- Dispatcher 인터페이스 전체 시그니처
-- 테스트 예제 (JUnit / Mocking)
-- plugin.yml 최소 구성 예시 (선택)
-
----
-
-(본 README 초안은 부분 코드 스니펫을 기반으로 작성되었으며, 실제 소스와 다른 명칭/동작은 반드시 교정하세요.)
