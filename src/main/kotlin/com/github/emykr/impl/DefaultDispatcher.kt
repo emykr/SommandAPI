@@ -90,7 +90,7 @@ class DefaultDispatcher : SommandDispatcher {
 
     private fun passesPermission(source: SommandSource, node: SommandNode): Boolean {
         val perm = node.permission ?: return true
-        return source.sender.hasPermission(perm)
+        return source.hasPermission(perm)
     }
 
     override fun suggest(

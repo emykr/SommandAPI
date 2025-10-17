@@ -48,7 +48,7 @@ fun List<SommandSuggestion>.filterFor(prefix: String, source: SommandSource): Li
     return this
         .filter { s ->
             val perm = s.permission
-            (perm == null || source.sender.hasPermission(perm)) &&
+            (perm == null || source.hasPermission(perm)) &&
                     (prefix.isEmpty() || s.value.lowercase(Locale.ROOT).startsWith(lowerPrefix))
         }
         .sortedBy { it.value.lowercase(Locale.ROOT) }

@@ -12,10 +12,11 @@ sealed class SommandNode(
     val description: String?,
     val permission: String?
 ) {
-    internal val children: MutableList<SommandNode> = mutableListOf()
-    internal var executor: (ExecutionScope.() -> Unit)? = null
-    internal var greedy: Boolean = false
-    internal var argument: CommandArgument<*>? = null
+    // changed from internal -> public so other modules can inspect the tree
+    val children: MutableList<SommandNode> = mutableListOf()
+    var executor: (ExecutionScope.() -> Unit)? = null
+    var greedy: Boolean = false
+    var argument: CommandArgument<*>? = null
 
     fun hasExecutor(): Boolean = executor != null
 

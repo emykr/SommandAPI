@@ -1,5 +1,4 @@
-
-
+import org.gradle.kotlin.dsl.maven
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -12,6 +11,9 @@ dependencyResolutionManagement {
             url = uri("https://jitpack.io")
          //    credentials.username = "jp_fc8ju7dndk5asq69k9j5duaibj"
         }
+        maven {
+            url = uri("https://maven.fabricmc.net/")
+        }
 
     }
 }
@@ -22,3 +24,4 @@ plugins {
 
 
     rootProject.name = "SommandAPI"
+include("fabric")

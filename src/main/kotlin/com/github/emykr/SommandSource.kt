@@ -4,21 +4,23 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 /**
- * Abstraction of a command sender so higher level logic is not tightly coupled to Bukkit API.
+ * Abstraction of a command sender so higher level logic is not tightly coupled to a specific server API.
  */
 interface SommandSource {
-    val sender: CommandSender
+    /**
+     * Returns true when the sender has the given permission.
+     */
+    fun hasPermission(permission: String): Boolean
 
     /**
      * True when the underlying sender is a Player.
      */
     val isPlayer: Boolean
-        get() = sender is Player
 
     /**
-     * Returns the Player or null when the sender is not a player.
+     * Returns the platform-specific player object or null when not a player.
      */
-    fun asPlayer(): Player? = sender as? Player
+    fun asPlayer(): Any?
 
     /**
      * Sends a plain text message to the sender.
@@ -27,9 +29,16 @@ interface SommandSource {
 }
 
 /**
- * Default implementation that simply wraps a Bukkit CommandSender.
+ * Bukkit implementation that wraps a Bukkit CommandSender.
  */
-class BukkitSommandSource(override val sender: CommandSender) : SommandSource {
+class BukkitSommandSource(private val sender: CommandSender) : SommandSource {
+    override fun hasPermission(permission: String): Boolean = sender.hasPermission(permission)
+
+    override val isPlayer: Boolean
+        get() = sender is Player
+
+    override fun asPlayer(): Any? = sender as? Player
+
     override fun send(message: String) {
         sender.sendMessage(message)
     }
