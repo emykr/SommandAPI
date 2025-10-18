@@ -4,12 +4,12 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
+        gradlePluginPortal()
         maven("https://repo.papermc.io/repository/maven-public/") {
             name = "papermc-repo"
         }
         maven {
             url = uri("https://jitpack.io")
-         //    credentials.username = "jp_fc8ju7dndk5asq69k9j5duaibj"
         }
         maven {
             url = uri("https://maven.fabricmc.net/")

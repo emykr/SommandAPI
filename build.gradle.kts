@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm") version "2.2.20-Beta2"
     id("com.gradleup.shadow") version "8.3.0"
-    id("fabric-loom") version "1.11-SNAPSHOT"
+//    id("fabric-loom") version "1.11-SNAPSHOT"
     `maven-publish`
     signing
 }
@@ -25,7 +25,7 @@ dependencies {
     implementation("com.mojang:brigadier:1.0.18")
     implementation ("net.fabricmc:fabric-loader:0.17.3")
     implementation("net.fabricmc:yarn:1.20.1+build.10")
-    implementation("com.mojang:minecraft:1.20.1")
+//    implementation("com.mojang:minecraft:1.20.1")
 
     //mplementation("com.github.emykr:SommandAPI:1.20.1-SNAPSHOT")
 }
