@@ -23,5 +23,5 @@ plugins {
 }
 
 
-    rootProject.name = "SommandAPI"
-include("fabric")
+rootProject.name = "SommandAPI"
+

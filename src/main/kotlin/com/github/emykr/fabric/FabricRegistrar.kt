@@ -4,7 +4,6 @@ import com.github.emykr.fabric.brigadier.BrigadierRegistrar
 import com.github.emykr.SommandSource
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
-import net.minecraft.server.command.ServerCommandSource
 
 class FabricSommandSource(private val source: ServerCommandSource) : SommandSource {
     override fun hasPermission(permission: String): Boolean {
