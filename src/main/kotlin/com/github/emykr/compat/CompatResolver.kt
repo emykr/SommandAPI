@@ -20,8 +20,7 @@ object CompatResolver {
      * 항상 null이 아닌 유효한 인스턴스를 돌려줍니다.
      */
     fun resolve(): BaseCompat {
-        val versionString = extractServerVersion()
-        return when (versionString) {
+        return when (val versionString = extractServerVersion()) {
             "1.21.4" -> Compat_1_21_4()
             "1.21.9" -> Compat_1_21_9()
             "1.21.10" -> Compat_1_21_10()
@@ -41,14 +40,14 @@ object CompatResolver {
     private fun extractServerVersion(): String {
         // 1. getBukkitVersion 시도
         val bukkitVersion = runCatching { Bukkit.getBukkitVersion() }.getOrNull()
-        val fromBukkit = parseMCVersion(bukkitVersion)
+        val fromBukkit = parseMcVersion(bukkitVersion)
         if (fromBukkit != null) {
             return fromBukkit
         }
 
         // 2. getVersion 시도 (예: "git-Paper-123 (MC: 1.21.9)")
         val fullVersion = runCatching { Bukkit.getVersion() }.getOrNull()
-        val fromFull = parseMCVersion(fullVersion)
+        val fromFull = parseMcVersion(fullVersion)
         if (fromFull != null) {
             return fromFull
         }
@@ -61,7 +60,7 @@ object CompatResolver {
      * 문자열에서 "숫자.숫자.숫자" 패턴을 찾아 반환합니다.
      * 없으면 null.
      */
-    private fun parseMCVersion(source: String?): String? {
+    private fun parseMcVersion(source: String?): String? {
         if (source.isNullOrBlank()) {
             return null
         }
@@ -78,5 +77,7 @@ object CompatResolver {
      * - serverVersion은 파싱된 문자열(또는 "unknown")을 그대로 사용합니다.
      * - 나머지 동작은 BaseCompat의 기본 구현과 동일합니다.
      */
-    private class FallbackCompat(override val serverVersion: String) : BaseCompat()
+    private class FallbackCompat(
+        override val serverVersion: String
+    ) : BaseCompat()
 }

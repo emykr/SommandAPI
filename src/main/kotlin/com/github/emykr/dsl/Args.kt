@@ -5,7 +5,7 @@ import com.github.emykr.CommandArgument
 /**
  * Convenience re-export factories inside DSL scope.
  */
-object arg {
+object Args {
     fun string(name: String, allowEmpty: Boolean = false) = CommandArgument.string(name, allowEmpty)
     fun greedyString(name: String) = CommandArgument.greedyString(name)
     fun int(name: String, min: Int? = null, max: Int? = null) = CommandArgument.int(name, min, max)
