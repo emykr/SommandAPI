@@ -1,8 +1,8 @@
 package com.github.emykr
 
 import com.github.emykr.dsl.SommandBuilder
-import org.bukkit.plugin.java.JavaPlugin
 import com.github.emykr.loader.SommandLoader
+import org.bukkit.plugin.java.JavaPlugin
 
 /**
  * Facade entry point for the library.
