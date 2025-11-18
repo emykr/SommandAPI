@@ -15,6 +15,4 @@ class VersionCompat : BaseCompat() {
      * 이 Compat가 대상으로 하는 서버 버전.
      */
     override val serverVersion: String = "1.21.10"
-
-    // 현재는 BaseCompat의 기본 동작만 사용합니다.
 }
