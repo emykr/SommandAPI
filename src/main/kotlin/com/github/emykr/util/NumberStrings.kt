@@ -12,13 +12,13 @@ import java.util.Locale
 /**
  * Utility for converting numbers to strings in a consistent way across the plugin.
  *
- * This class centralizes:
- * - Basic number → string conversion
- * - Locale-aware formatting
- * - Custom pattern formatting
- * - Common Bukkit-related message patterns that contain numbers
- *
- * All methods are null-safe and avoid throwing NPEs.
+ * 기능:
+ * - Number → String 기본 변환
+ * - Locale 기반 포맷, 패턴 포맷
+ * - 접두/접미어, 템플릿 치환
+ * - Bukkit 관련 메시지 포맷 (Sender/Player/World/Entity 등)
+ * - 람다식 기반 커스텀 포맷터 지원
+ * - 확장 함수 기반 헬퍼 제공
  */
 object NumberStrings {
 
@@ -28,7 +28,6 @@ object NumberStrings {
      * Converts a nullable [Number] to a string.
      *
      * - When [value] is null, [nullText] is returned (default: "-").
-     * - Uses [String.valueOf] which handles all primitive wrappers.
      */
     @JvmStatic
     @JvmOverloads
@@ -36,7 +35,6 @@ object NumberStrings {
         value: Number?,
         nullText: String = "-"
     ): String {
-        // Fast null handling to avoid NPE.
         val number: Number = value ?: return nullText
         return java.lang.String.valueOf(number)
     }
@@ -46,9 +44,6 @@ object NumberStrings {
      *
      * Example:
      * - locale=Locale.US, value=12345.67 → "12,345.67"
-     * - locale=Locale.KOREA, value=12345.67 → "12,345.67" (same grouping, different symbols)
-     *
-     * When [value] is null, [nullText] is returned (default: "-").
      */
     @JvmStatic
     @JvmOverloads
@@ -58,7 +53,6 @@ object NumberStrings {
         nullText: String = "-"
     ): String {
         val number: Number = value ?: return nullText
-        // Use DecimalFormat with locale-aware symbols.
         val symbols = DecimalFormatSymbols.getInstance(locale)
         val format = DecimalFormat("#,##0.###", symbols)
         return format.format(number)
@@ -68,8 +62,6 @@ object NumberStrings {
      * Converts a nullable [Number] using a custom decimal pattern.
      *
      * @param pattern DecimalFormat pattern, e.g. "#,##0", "0.00", "#,##0.000".
-     * @param locale Locale to use for symbols (decimal/group separators).
-     * @param nullText Fallback text when [value] is null.
      */
     @JvmStatic
     @JvmOverloads
@@ -88,13 +80,49 @@ object NumberStrings {
 
     // endregion
 
-    // region: Prefix / suffix / template helpers
+    // region: Lambda-based custom formatting
 
     /**
-     * Returns "[prefix][number]" with basic conversion.
+     * Applies a custom formatter lambda to a nullable number.
      *
-     * null → uses [nullText] instead of the number part.
+     * - [formatter] 는 null 이 아닌 Number 에만 호출됩니다.
+     * - [value] 가 null 이면 [nullText] 를 반환합니다.
      */
+    @JvmStatic
+    @JvmOverloads
+    fun custom(
+        value: Number?,
+        nullText: String = "-",
+        formatter: (Number) -> String
+    ): String {
+        requireNotNull(formatter) { "Formatter lambda must not be null." }
+        val number: Number = value ?: return nullText
+        return formatter(number)
+    }
+
+    /**
+     * Locale 정보를 함께 받는 커스텀 포맷터.
+     *
+     * 예:
+     *  customWithLocale(value, Locale.KOREA) { n, loc -> "${withLocale(n, loc)}원" }
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun customWithLocale(
+        value: Number?,
+        locale: Locale = Locale.getDefault(),
+        nullText: String = "-",
+        formatter: (Number, Locale) -> String
+    ): String {
+        requireNotNull(formatter) { "Formatter lambda must not be null." }
+        val number: Number = value ?: return nullText
+        return formatter(number, locale)
+    }
+
+    // endregion
+
+    // region: Prefix / suffix / template helpers
+
     @JvmStatic
     @JvmOverloads
     fun withPrefix(
@@ -106,11 +134,6 @@ object NumberStrings {
         return prefix + numText
     }
 
-    /**
-     * Returns "[number][suffix]" with basic conversion.
-     *
-     * null → uses [nullText] instead of the number part.
-     */
     @JvmStatic
     @JvmOverloads
     fun withSuffix(
@@ -125,11 +148,9 @@ object NumberStrings {
     /**
      * Simple template replacement.
      *
-     * Example:
-     *  template = "You have {amount} coins."
-     *  placeholder = "{amount}"
-     *  value = 10
-     *  → "You have 10 coins."
+     * template = "You have {amount} coins."
+     * placeholder = "{amount}"
+     * value = 10  → "You have 10 coins."
      */
     @JvmStatic
     @JvmOverloads
@@ -150,30 +171,18 @@ object NumberStrings {
 
     // region: Color code helpers (Bukkit style)
 
-    /**
-     * Converts '&' color codes to '§' codes (commonly used by Bukkit).
-     *
-     * Example:
-     *  "&aYou have 10 coins" → "§aYou have 10 coins"
-     */
     @JvmStatic
     fun ampersandToSection(text: String?): String {
         if (text.isNullOrEmpty()) return ""
         return text.replace('&', '§')
     }
 
-    /**
-     * Converts '§' color codes to '&' codes.
-     */
     @JvmStatic
     fun sectionToAmpersand(text: String?): String {
         if (text.isNullOrEmpty()) return ""
         return text.replace('§', '&')
     }
 
-    /**
-     * Removes all Bukkit-style color codes (&x or §x).
-     */
     @JvmStatic
     fun stripColors(text: String?): String {
         if (text.isNullOrEmpty()) return ""
@@ -184,11 +193,6 @@ object NumberStrings {
 
     // region: Bukkit-specific message helpers
 
-    /**
-     * Creates a message describing a numeric value for a [CommandSender].
-     *
-     * Example: "Player Steve has 5 lives."
-     */
     @JvmStatic
     fun forSenderValue(
         sender: CommandSender?,
@@ -201,11 +205,6 @@ object NumberStrings {
         return "Sender $name has $label: $numText"
     }
 
-    /**
-     * Creates a message describing a numeric value for a [Player].
-     *
-     * Example: "Player Steve has 10 points."
-     */
     @JvmStatic
     fun forPlayerValue(
         player: Player?,
@@ -218,9 +217,6 @@ object NumberStrings {
         return "Player $name has $label: $numText"
     }
 
-    /**
-     * Creates a message for an [OfflinePlayer] with a numeric value.
-     */
     @JvmStatic
     fun forOfflinePlayerValue(
         player: OfflinePlayer?,
@@ -233,11 +229,6 @@ object NumberStrings {
         return "Offline player $name has $label: $numText"
     }
 
-    /**
-     * Creates a message for a [World] with a numeric value.
-     *
-     * Example: "World world_nether has difficulty level: 3"
-     */
     @JvmStatic
     fun forWorldValue(
         world: World?,
@@ -250,11 +241,6 @@ object NumberStrings {
         return "World $name has $label: $numText"
     }
 
-    /**
-     * Creates a message for an [Entity] with a numeric value.
-     *
-     * Example: "Entity ZOMBIE(123) has health: 20.0"
-     */
     @JvmStatic
     fun forEntityValue(
         entity: Entity?,
@@ -275,3 +261,95 @@ object NumberStrings {
 
     // endregion
 }
+
+/**
+ * ===== 확장 함수 영역 =====
+ *
+ * Number? / CommandSender / Player / World / Entity 등에
+ * 자연스럽게 붙여 쓸 수 있는 확장 함수들입니다.
+ */
+
+/**
+ * Nullable Number 에 대한 기본 문자열 변환 확장.
+ */
+fun Number?.toBasicString(nullText: String = "-"): String =
+        NumberStrings.basic(this, nullText)
+
+/**
+ * Nullable Number 에 대한 Locale 기반 문자열 변환 확장.
+ */
+fun Number?.toLocalizedString(
+    locale: Locale = Locale.getDefault(),
+    nullText: String = "-"
+): String = NumberStrings.withLocale(this, locale, nullText)
+
+/**
+ * Nullable Number 에 대한 패턴 기반 문자열 변환 확장.
+ */
+fun Number?.toPatternString(
+    pattern: String,
+    locale: Locale = Locale.getDefault(),
+    nullText: String = "-"
+): String = NumberStrings.withPattern(this, pattern, locale, nullText)
+
+/**
+ * 람다식으로 Number → String 변환을 지정하는 확장.
+ */
+inline fun Number?.formatWith(
+    nullText: String = "-",
+    noinline formatter: (Number) -> String
+): String = NumberStrings.custom(this, nullText, formatter)
+
+/**
+ * Locale 을 함께 고려하는 람다 포맷 확장.
+ */
+inline fun Number?.formatWithLocale(
+    locale: Locale = Locale.getDefault(),
+    nullText: String = "-",
+    noinline formatter: (Number, Locale) -> String
+): String = NumberStrings.customWithLocale(this, locale, nullText, formatter)
+
+/**
+ * CommandSender 기준 메시지 생성 확장.
+ */
+fun CommandSender?.formatValue(
+    value: Number?,
+    label: String = "value",
+    locale: Locale = Locale.getDefault()
+): String = NumberStrings.forSenderValue(this, value, label, locale)
+
+/**
+ * Player 기준 메시지 생성 확장.
+ */
+fun Player?.formatValue(
+    value: Number?,
+    label: String = "value",
+    locale: Locale = Locale.getDefault()
+): String = NumberStrings.forPlayerValue(this, value, label, locale)
+
+/**
+ * OfflinePlayer 기준 메시지 생성 확장.
+ */
+fun OfflinePlayer?.formatValue(
+    value: Number?,
+    label: String = "value",
+    locale: Locale = Locale.getDefault()
+): String = NumberStrings.forOfflinePlayerValue(this, value, label, locale)
+
+/**
+ * World 기준 메시지 생성 확장.
+ */
+fun World?.formatValue(
+    value: Number?,
+    label: String = "value",
+    locale: Locale = Locale.getDefault()
+): String = NumberStrings.forWorldValue(this, value, label, locale)
+
+/**
+ * Entity 기준 메시지 생성 확장.
+ */
+fun Entity?.formatValue(
+    value: Number?,
+    label: String = "value",
+    locale: Locale = Locale.getDefault()
+): String = NumberStrings.forEntityValue(this, value, label, locale)
