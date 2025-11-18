@@ -1,150 +1,225 @@
-package com.github.emykr.loader
+package com.github.emykr.dsl
 
-import org.bukkit.Bukkit
-import org.bukkit.command.Command
-import org.bukkit.command.CommandMap
-import org.bukkit.command.CommandSender
-import org.bukkit.command.PluginIdentifiableCommand
-import org.bukkit.permissions.Permission
-import org.bukkit.permissions.PermissionDefault
-import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
-import com.github.emykr.BukkitSommandSource
+import com.github.emykr.CommandArgument
 import com.github.emykr.CommandRegistry
-import com.github.emykr.SommandDispatcher
-import com.github.emykr.dsl.SommandBuilder
-import com.github.emykr.impl.DefaultDispatcher
+import com.github.emykr.SommandImpl
+import com.github.emykr.node.ArgumentNode
+import com.github.emykr.node.LiteralNode
 import com.github.emykr.node.RootNode
-import java.lang.reflect.Field
+import com.github.emykr.node.SommandNode
 
 /**
- * Loader responsible for:
- * - Running the DSL builder
- * - Registering root commands into Bukkit's CommandMap
- * - Registering permission nodes
+ * DSL entry builder for defining one or multiple commands.
+ *
+ * Updated names for readability:
+ * - subcommand(...) replaces literal(...)
+ * - param(...) replaces argument(...)
+ *
+ * Backward compatibility:
+ * - literal(...), literalExec(...), argument(...), argumentExec(...) remain as deprecated
+ *   and delegate to the new API so existing code keeps working.
  */
-class SommandLoader(
-    private val plugin: JavaPlugin,
-    private val dispatcher: SommandDispatcher = DefaultDispatcher()
+class SommandBuilder internal constructor(
+    private val plugin: JavaPlugin
 ) {
 
-    fun load(block: SommandBuilder.() -> Unit) {
-        val builder = SommandBuilder(plugin)
-        builder.block()
-
-        // Register permissions first
-        registerPermissions()
-
-        // Register commands
-        registerCommands()
-    }
-
-    private fun registerPermissions() {
-        val pm = plugin.server.pluginManager
-        val added = mutableSetOf<String>()
-        CommandRegistry.allDistinct().forEach { root ->
-            walkRegisterPermissions(root, pm, added)
-        }
-    }
-
-    private fun walkRegisterPermissions(
-        node: com.github.emykr.node.SommandNode,
-        pluginManager: org.bukkit.plugin.PluginManager,
-        added: MutableSet<String>
+    /**
+     * Declares and registers a root command immediately (legacy-compatible behavior).
+     */
+    fun command(
+        vararg aliases: String,
+        description: String? = null,
+        permission: String? = null,
+        block: CommandTreeBuilder.() -> Unit
     ) {
-        node.permission?.let { permNode ->
-            if (added.add(permNode)) {
-                if (pluginManager.getPermission(permNode) == null) {
-                    val perm = Permission(permNode, PermissionDefault.OP)
-                    pluginManager.addPermission(perm)
-                }
-            }
-        }
-        node.children.forEach { child ->
-            walkRegisterPermissions(child, pluginManager, added)
-        }
-    }
-
-    private fun registerCommands() {
-        val commandMap = obtainCommandMap() ?: error("Unable to obtain CommandMap from server.")
-        CommandRegistry.allDistinct().forEach { root ->
-            val dynamic = DynamicSommandCommand(root, dispatcher, plugin)
-            // Avoid duplicate registration
-            if (commandMap.getCommand(root.name) == null) {
-                commandMap.register(plugin.name.lowercase(), dynamic)
-            }
-        }
-    }
-
-    private fun obtainCommandMap(): CommandMap? {
-        // Paper exposes server.commandMap, but to remain broadly compatible we reflect.
-        return try {
-            val server = Bukkit.getServer()
-            val field: Field = server.javaClass.getDeclaredField("commandMap")
-            field.isAccessible = true
-            field.get(server) as? CommandMap
-        } catch (ex: Exception) {
-            plugin.logger.severe("Failed to acquire CommandMap: ${ex.message}")
-            null
-        }
+        require(aliases.isNotEmpty()) { "At least one alias must be provided." }
+        val main = aliases.first()
+        val root = RootNode(main, description, permission, aliases.toList())
+        // Build the tree
+        CommandTreeBuilder(root).block()
+        // Register
+        CommandRegistry.add(root)
     }
 
     /**
-     * Command wrapper bridging to our dispatcher.
+     * Inline convenience for a very short command with a direct executor.
      */
-    private class DynamicSommandCommand(
-        private val root: RootNode,
-        private val dispatcher: SommandDispatcher,
-        private val pluginInstance: Plugin
-    ) : Command(root.name, root.description ?: "Command ${root.name}", "", root.aliases),
-        PluginIdentifiableCommand {
-
-        override fun getPlugin(): Plugin = pluginInstance
-
-        override fun execute(sender: CommandSender, label: String, args: Array<out String>): Boolean {
-            if (root.permission != null && !sender.hasPermission(root.permission)) {
-                sender.sendMessage("You do not have permission to execute this command.")
-                return true
-            }
-            val success = dispatcher.dispatch(
-                source = BukkitSommandSource(sender),
-                label = label,
-                tokens = args.toList(),
-                root = root
-            )
-            if (!success) {
-                sender.sendMessage(buildUsage(root))
-            }
-            return true
-        }
-
-        override fun tabComplete(
-            sender: CommandSender,
-            alias: String,
-            args: Array<out String>
-        ): MutableList<String> {
-            if (root.permission != null && !sender.hasPermission(root.permission)) {
-                return mutableListOf()
-            }
-            val suggestions = dispatcher.suggest(
-                source = BukkitSommandSource(sender),
-                label = alias,
-                tokens = args.toList(),
-                root = root
-            )
-            return suggestions.toMutableList()
-        }
-
-        private fun buildUsage(node: RootNode): String {
-            // Simple usage builder (only shows literal/argument names one level deep)
-            val parts = mutableListOf<String>()
-            node.children.forEach { child ->
-                parts += when {
-                    child.argument != null -> "<${child.argument!!.name}>"
-                    else -> child.name
-                }
-            }
-            return "Usage: /${node.name} ${parts.joinToString(" ")}"
+    fun simple(
+        vararg aliases: String,
+        description: String? = null,
+        permission: String? = null,
+        executes: CommandExecution = {}
+    ) {
+        command(*aliases, description = description, permission = permission) {
+            executes(executes)
         }
     }
+}
+
+/**
+ * Type alias for command execution lambdas bound to SommandNode.ExecutionScope.
+ */
+typealias CommandExecution = SommandNode.ExecutionScope.() -> Unit
+
+/**
+ * Builds the internal tree for a single command root.
+ *
+ * Primary APIs:
+ * - subcommand(name, ..., executes?, block?)  // replaces literal(...)
+ * - param(arg, ..., greedy=false, executes?, block?)  // replaces argument(...)
+ * - executes { ... }  // mark current node as executable
+ *
+ * Deprecated aliases remain and delegate to the new ones.
+ */
+class CommandTreeBuilder internal constructor(
+    private val current: SommandNode
+) {
+
+    /**
+     * Adds a subcommand (literal) child node.
+     *
+     * Examples:
+     * subcommand("join", executes = { ... })
+     * subcommand("cheat") { ...nested... }
+     * subcommand("give", executes = { ... }) { param(StringArg("target")) { ... } }
+     */
+    fun subcommand(
+        name: String,
+        description: String? = null,
+        permission: String? = null,
+        executes: CommandExecution? = null,
+        block: CommandTreeBuilder.() -> Unit = {}
+    ) {
+        val lit = LiteralNode(name, description, permission)
+        // Attach executor if provided
+        if (executes != null) {
+            lit.executor = executes
+        }
+        // Link as child
+        current.children += lit
+        // Build nested children
+        CommandTreeBuilder(lit).block()
+    }
+
+    /**
+     * Adds an argument node as a parameter under the current node.
+     *
+     * Examples:
+     * param(StringArg("target"), executes = { ... })
+     * param(IntArg("amount"), greedy = false) { subcommand("confirm", executes = { ... }) }
+     */
+    fun <T : Any> param(
+        arg: CommandArgument<T>,
+        description: String? = null,
+        permission: String? = null,
+        greedy: Boolean = false,
+        executes: CommandExecution? = null,
+        block: CommandTreeBuilder.() -> Unit = {}
+    ) {
+        val an = ArgumentNode(arg, description, permission, greedy)
+        // Attach executor if provided
+        if (executes != null) {
+            an.executor = executes
+        }
+        // Link as child
+        current.children += an
+        // Build nested children
+        CommandTreeBuilder(an).block()
+    }
+
+    /**
+     * Mark current node as executable.
+     */
+    fun executes(block: CommandExecution) {
+        current.executor = block
+    }
+
+    /**
+     * DSL sugar for an optional sub-branch with a group name.
+     * Internally the same as subcommand(name) { block() }.
+     */
+    fun group(name: String, block: CommandTreeBuilder.() -> Unit) {
+        subcommand(name, block = block)
+    }
+
+    // ----------------------------
+    // Backward-compatible aliases
+    // ----------------------------
+
+    /**
+     * Deprecated: use subcommand(name, ..., executes?, block?)
+     */
+    @Deprecated(
+        message = "Use subcommand(name, description, permission, executes, block) instead.",
+        replaceWith = ReplaceWith("subcommand(name, description, permission, executes = null, block)")
+    )
+    fun literal(
+        name: String,
+        description: String? = null,
+        permission: String? = null,
+        block: CommandTreeBuilder.() -> Unit
+    ) {
+        subcommand(name, description, permission, executes = null, block = block)
+    }
+
+    /**
+     * Deprecated: use subcommand(name, ..., executes = { ... })
+     */
+    @Deprecated(
+        message = "Use subcommand(name, description, permission, executes = executes) instead.",
+        replaceWith = ReplaceWith("subcommand(name, description, permission, executes = executes)")
+    )
+    fun literalExec(
+        name: String,
+        description: String? = null,
+        permission: String? = null,
+        executes: CommandExecution
+    ) {
+        subcommand(name, description, permission, executes = executes)
+    }
+
+    /**
+     * Deprecated: use param(arg, ..., executes?, block?)
+     */
+    @Deprecated(
+        message = "Use param(arg, description, permission, greedy, executes, block) instead.",
+        replaceWith = ReplaceWith("param(arg, description, permission, greedy, executes = null, block)")
+    )
+    fun <T : Any> argument(
+        arg: CommandArgument<T>,
+        description: String? = null,
+        permission: String? = null,
+        greedy: Boolean = false,
+        block: CommandTreeBuilder.() -> Unit
+    ) {
+        param(arg, description, permission, greedy, executes = null, block = block)
+    }
+
+    /**
+     * Deprecated: use param(arg, ..., executes = { ... })
+     */
+    @Deprecated(
+        message = "Use param(arg, description, permission, greedy, executes = executes) instead.",
+        replaceWith = ReplaceWith("param(arg, description, permission, greedy, executes = executes)")
+    )
+    fun <T : Any> argumentExec(
+        arg: CommandArgument<T>,
+        description: String? = null,
+        permission: String? = null,
+        greedy: Boolean = false,
+        executes: CommandExecution
+    ) {
+        param(arg, description, permission, greedy, executes = executes)
+    }
+}
+
+/**
+ * Top-level DSL entry point.
+ *
+ * Single, non-duplicated definition to avoid "Conflicting overloads".
+ */
+fun sommand(plugin: JavaPlugin, block: SommandBuilder.() -> Unit) {
+    // Load and register the DSL-defined commands into the registry via SommandImpl
+    SommandImpl.load(plugin, block)
 }
