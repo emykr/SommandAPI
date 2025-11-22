@@ -3,6 +3,7 @@ package com.github.emykr.dsl
 import org.bukkit.plugin.java.JavaPlugin
 import com.github.emykr.CommandArgument
 import com.github.emykr.CommandRegistry
+import com.github.emykr.compat.BaseCompat
 import com.github.emykr.node.ArgumentNode
 import com.github.emykr.node.LiteralNode
 import com.github.emykr.node.RootNode
@@ -11,15 +12,27 @@ import com.github.emykr.node.SommandNode
 /**
  * DSL entry builder for defining one or multiple commands.
  *
- * 이 클래스는 "명령 트리 정의"에만 집중합니다.
- * 실제 로딩/엔트리 포인트는 SommandLoader.kt 에서 담당합니다.
+ * This class focuses only on building command trees.
+ * A BaseCompat instance can be injected for version-specific behavior or messages.
+ *
+ * 기존 사용 코드는 그대로 유지:
+ *   SommandBuilder(plugin).command(...)  (compat 필요 없을 때)
+ * 새로운 기능:
+ *   SommandBuilder(plugin, compat).command(...)  (버전별 커스터마이즈 필요 시)
  */
 class SommandBuilder internal constructor(
-    private val plugin: JavaPlugin
+    private val plugin: JavaPlugin,
+    private val compat: BaseCompat? = null
 ) {
 
     /**
-     * 루트 커맨드를 선언하고 즉시 등록합니다.
+     * Exposes the compat instance if provided.
+     * Returns null when no compat was injected.
+     */
+    fun currentCompat(): BaseCompat? = compat
+
+    /**
+     * Declares and registers a root command.
      */
     fun command(
         vararg aliases: String,
@@ -36,7 +49,7 @@ class SommandBuilder internal constructor(
     }
 
     /**
-     * 간단한 단일 실행 커맨드 정의 헬퍼.
+     * Convenience for a short command with only a direct executor.
      */
     fun simple(
         vararg aliases: String,
@@ -51,19 +64,19 @@ class SommandBuilder internal constructor(
 }
 
 /**
- * SommandNode.ExecutionScope 에 바인딩된 실행 블록 타입.
+ * Execution block type bound to SommandNode.ExecutionScope.
  */
 typealias CommandExecution = SommandNode.ExecutionScope.() -> Unit
 
 /**
- * 루트 하나에 대한 내부 트리 빌더.
+ * Internal tree builder for a single command root.
  */
 class CommandTreeBuilder internal constructor(
     private val current: SommandNode
 ) {
 
     /**
-     * 리터럴(서브 커맨드) 노드 추가.
+     * Adds a literal child node.
      */
     fun literal(
         name: String,
@@ -77,7 +90,7 @@ class CommandTreeBuilder internal constructor(
     }
 
     /**
-     * 실행 가능한 리터럴 노드 추가.
+     * Adds a literal node with an executor.
      */
     fun literalExec(
         name: String,
@@ -91,7 +104,7 @@ class CommandTreeBuilder internal constructor(
     }
 
     /**
-     * 인자 노드 추가.
+     * Adds an argument node.
      */
     fun <T : Any> argument(
         arg: CommandArgument<T>,
@@ -106,7 +119,7 @@ class CommandTreeBuilder internal constructor(
     }
 
     /**
-     * 실행 가능한 인자 노드 추가.
+     * Adds an argument node with direct executor.
      */
     fun <T : Any> argumentExec(
         arg: CommandArgument<T>,
@@ -121,14 +134,14 @@ class CommandTreeBuilder internal constructor(
     }
 
     /**
-     * 현재 노드를 실행 지점으로 표시.
+     * Marks current node executable.
      */
     fun executes(block: CommandExecution) {
         current.executor = block
     }
 
     /**
-     * 그룹용 슈가 (실제로는 literal 과 동일).
+     * Group sugar (internally just a literal).
      */
     fun group(name: String, block: CommandTreeBuilder.() -> Unit) {
         literal(name, block = block)

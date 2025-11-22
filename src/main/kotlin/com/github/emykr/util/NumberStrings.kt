@@ -10,40 +10,31 @@ import java.text.DecimalFormatSymbols
 import java.util.Locale
 
 /**
- * Utility for converting numbers to strings in a consistent way across the plugin.
+ * Central numeric formatting utility (no extension functions).
  *
- * 기능:
- * - Number → String 기본 변환
- * - Locale 기반 포맷, 패턴 포맷
- * - 접두/접미어, 템플릿 치환
- * - Bukkit 관련 메시지 포맷 (Sender/Player/World/Entity 등)
- * - 람다식 기반 커스텀 포맷터 지원
- * - 확장 함수 기반 헬퍼 제공
+ * Provides:
+ * - Basic / locale / pattern formatting
+ * - Custom lambda formatting (wrapped safely)
+ * - Template replacement
+ * - Color code conversion
+ * - Bukkit-related descriptive messages
+ *
+ * For more structured usage, see NumberFormatter interface and NumberFormatters object.
  */
 object NumberStrings {
 
-    // region: Basic conversion
-
     /**
-     * Converts a nullable [Number] to a string.
-     *
-     * - When [value] is null, [nullText] is returned (default: "-").
+     * Basic null-safe conversion to string.
      */
     @JvmStatic
     @JvmOverloads
-    fun basic(
-        value: Number?,
-        nullText: String = "-"
-    ): String {
+    fun basic(value: Number?, nullText: String = "-"): String {
         val number: Number = value ?: return nullText
         return java.lang.String.valueOf(number)
     }
 
     /**
-     * Converts a nullable [Number] to a string with locale-aware formatting.
-     *
-     * Example:
-     * - locale=Locale.US, value=12345.67 → "12,345.67"
+     * Locale-aware formatting with default pattern "#,##0.###".
      */
     @JvmStatic
     @JvmOverloads
@@ -59,9 +50,7 @@ object NumberStrings {
     }
 
     /**
-     * Converts a nullable [Number] using a custom decimal pattern.
-     *
-     * @param pattern DecimalFormat pattern, e.g. "#,##0", "0.00", "#,##0.000".
+     * Pattern-based formatting.
      */
     @JvmStatic
     @JvmOverloads
@@ -78,15 +67,8 @@ object NumberStrings {
         return format.format(number)
     }
 
-    // endregion
-
-    // region: Lambda-based custom formatting
-
     /**
-     * Applies a custom formatter lambda to a nullable number.
-     *
-     * - [formatter] 는 null 이 아닌 Number 에만 호출됩니다.
-     * - [value] 가 null 이면 [nullText] 를 반환합니다.
+     * Custom lambda formatting, safely wrapping null.
      */
     @JvmStatic
     @JvmOverloads
@@ -101,10 +83,7 @@ object NumberStrings {
     }
 
     /**
-     * Locale 정보를 함께 받는 커스텀 포맷터.
-     *
-     * 예:
-     *  customWithLocale(value, Locale.KOREA) { n, loc -> "${withLocale(n, loc)}원" }
+     * Custom lambda with locale context.
      */
     @JvmStatic
     @JvmOverloads
@@ -119,10 +98,9 @@ object NumberStrings {
         return formatter(number, locale)
     }
 
-    // endregion
-
-    // region: Prefix / suffix / template helpers
-
+    /**
+     * Prefix helper.
+     */
     @JvmStatic
     @JvmOverloads
     fun withPrefix(
@@ -130,10 +108,12 @@ object NumberStrings {
         prefix: String,
         nullText: String = "-"
     ): String {
-        val numText = basic(value, nullText)
-        return prefix + numText
+        return prefix + basic(value, nullText)
     }
 
+    /**
+     * Suffix helper.
+     */
     @JvmStatic
     @JvmOverloads
     fun withSuffix(
@@ -141,16 +121,11 @@ object NumberStrings {
         suffix: String,
         nullText: String = "-"
     ): String {
-        val numText = basic(value, nullText)
-        return numText + suffix
+        return basic(value, nullText) + suffix
     }
 
     /**
-     * Simple template replacement.
-     *
-     * template = "You have {amount} coins."
-     * placeholder = "{amount}"
-     * value = 10  → "You have 10 coins."
+     * Single placeholder template replacement.
      */
     @JvmStatic
     @JvmOverloads
@@ -162,14 +137,13 @@ object NumberStrings {
     ): String {
         require(template.isNotEmpty()) { "Template must not be empty." }
         require(placeholder.isNotEmpty()) { "Placeholder must not be empty." }
-
-        val numText = basic(value, nullText)
-        return template.replace(placeholder, numText)
+        val formatted = basic(value, nullText)
+        return template.replace(placeholder, formatted)
     }
 
-    // endregion
-
-    // region: Color code helpers (Bukkit style)
+    // ---------------------------------------------------
+    // Color code processing (Bukkit convention)
+    // ---------------------------------------------------
 
     @JvmStatic
     fun ampersandToSection(text: String?): String {
@@ -189,9 +163,9 @@ object NumberStrings {
         return text.replace(Regex("(?i)[§&][0-9A-FK-OR]"), "")
     }
 
-    // endregion
-
-    // region: Bukkit-specific message helpers
+    // ---------------------------------------------------
+    // Bukkit descriptive helpers
+    // ---------------------------------------------------
 
     @JvmStatic
     fun forSenderValue(
@@ -201,8 +175,8 @@ object NumberStrings {
         locale: Locale = Locale.getDefault()
     ): String {
         val name = sender?.name ?: "unknown"
-        val numText = withLocale(value, locale, nullText = "-")
-        return "Sender $name has $label: $numText"
+        val num = withLocale(value, locale)
+        return "Sender $name has $label: $num"
     }
 
     @JvmStatic
@@ -213,8 +187,8 @@ object NumberStrings {
         locale: Locale = Locale.getDefault()
     ): String {
         val name = player?.name ?: "unknown"
-        val numText = withLocale(value, locale, nullText = "-")
-        return "Player $name has $label: $numText"
+        val num = withLocale(value, locale)
+        return "Player $name has $label: $num"
     }
 
     @JvmStatic
@@ -225,8 +199,8 @@ object NumberStrings {
         locale: Locale = Locale.getDefault()
     ): String {
         val name = player?.name ?: "unknown"
-        val numText = withLocale(value, locale, nullText = "-")
-        return "Offline player $name has $label: $numText"
+        val num = withLocale(value, locale)
+        return "Offline player $name has $label: $num"
     }
 
     @JvmStatic
@@ -237,8 +211,8 @@ object NumberStrings {
         locale: Locale = Locale.getDefault()
     ): String {
         val name = world?.name ?: "unknown"
-        val numText = withLocale(value, locale, nullText = "-")
-        return "World $name has $label: $numText"
+        val num = withLocale(value, locale)
+        return "World $name has $label: $num"
     }
 
     @JvmStatic
@@ -249,107 +223,12 @@ object NumberStrings {
         locale: Locale = Locale.getDefault()
     ): String {
         if (entity == null) {
-            val numText = withLocale(value, locale, nullText = "-")
-            return "Entity <null> has $label: $numText"
+            val num = withLocale(value, locale)
+            return "Entity <null> has $label: $num"
         }
-
-        val typeName = entity.type.name
-        val idPart = entity.entityId
-        val numText = withLocale(value, locale, nullText = "-")
-        return "Entity $typeName($idPart) has $label: $numText"
+        val type = entity.type.name
+        val id = entity.entityId
+        val num = withLocale(value, locale)
+        return "Entity $type($id) has $label: $num"
     }
-
-    // endregion
 }
-
-/**
- * ===== 확장 함수 영역 =====
- *
- * Number? / CommandSender / Player / World / Entity 등에
- * 자연스럽게 붙여 쓸 수 있는 확장 함수들입니다.
- */
-
-/**
- * Nullable Number 에 대한 기본 문자열 변환 확장.
- */
-fun Number?.toBasicString(nullText: String = "-"): String =
-        NumberStrings.basic(this, nullText)
-
-/**
- * Nullable Number 에 대한 Locale 기반 문자열 변환 확장.
- */
-fun Number?.toLocalizedString(
-    locale: Locale = Locale.getDefault(),
-    nullText: String = "-"
-): String = NumberStrings.withLocale(this, locale, nullText)
-
-/**
- * Nullable Number 에 대한 패턴 기반 문자열 변환 확장.
- */
-fun Number?.toPatternString(
-    pattern: String,
-    locale: Locale = Locale.getDefault(),
-    nullText: String = "-"
-): String = NumberStrings.withPattern(this, pattern, locale, nullText)
-
-/**
- * 람다식으로 Number → String 변환을 지정하는 확장.
- */
-inline fun Number?.formatWith(
-    nullText: String = "-",
-    noinline formatter: (Number) -> String
-): String = NumberStrings.custom(this, nullText, formatter)
-
-/**
- * Locale 을 함께 고려하는 람다 포맷 확장.
- */
-inline fun Number?.formatWithLocale(
-    locale: Locale = Locale.getDefault(),
-    nullText: String = "-",
-    noinline formatter: (Number, Locale) -> String
-): String = NumberStrings.customWithLocale(this, locale, nullText, formatter)
-
-/**
- * CommandSender 기준 메시지 생성 확장.
- */
-fun CommandSender?.formatValue(
-    value: Number?,
-    label: String = "value",
-    locale: Locale = Locale.getDefault()
-): String = NumberStrings.forSenderValue(this, value, label, locale)
-
-/**
- * Player 기준 메시지 생성 확장.
- */
-fun Player?.formatValue(
-    value: Number?,
-    label: String = "value",
-    locale: Locale = Locale.getDefault()
-): String = NumberStrings.forPlayerValue(this, value, label, locale)
-
-/**
- * OfflinePlayer 기준 메시지 생성 확장.
- */
-fun OfflinePlayer?.formatValue(
-    value: Number?,
-    label: String = "value",
-    locale: Locale = Locale.getDefault()
-): String = NumberStrings.forOfflinePlayerValue(this, value, label, locale)
-
-/**
- * World 기준 메시지 생성 확장.
- */
-fun World?.formatValue(
-    value: Number?,
-    label: String = "value",
-    locale: Locale = Locale.getDefault()
-): String = NumberStrings.forWorldValue(this, value, label, locale)
-
-/**
- * Entity 기준 메시지 생성 확장.
- */
-fun Entity?.formatValue(
-    value: Number?,
-    label: String = "value",
-    locale: Locale = Locale.getDefault()
-): String = NumberStrings.forEntityValue(this, value, label, locale)
