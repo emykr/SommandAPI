@@ -19,7 +19,7 @@ SommandAPI 는 Bukkit/Paper 환경에서 선언형 DSL 로 명령 트리를 정�
 ## 설치 (Installation)
 
 최신 릴리스 버전을 JitPack 에서 확인하세요: [SommandAPI Badge](https://jitpack.io/#emykr/SommandAPI)  
-(아래 예시는 가상의 `v1.8.0` 로 표기; 실제 사용 시 최신 버전으로 변경)
+(아래 예시는 가상의 `v1.7.3` 로 표기; 실제 사용 시 최신 버전으로 변경)
 
 ### Gradle (Kotlin DSL)
 
@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.emykr:SommandAPI:v1.8.0")
+    implementation("com.github.emykr:SommandAPI:v1.7.3")
 }
 ```
 
@@ -43,7 +43,7 @@ repositories {
 }
 
 dependencies {
-    implementation "com.github.emykr:SommandAPI:v1.8.0"
+    implementation "com.github.emykr:SommandAPI:v1.7.3"
 }
 ```
 
@@ -61,7 +61,7 @@ dependencies {
   <dependency>
     <groupId>com.github.emykr</groupId>
     <artifactId>SommandAPI</artifactId>
-    <version>v1.8.0</version>
+    <version>v1.7.3</version>
   </dependency>
 </dependencies>
 ```
@@ -382,7 +382,7 @@ A. 커스텀 Dispatcher 또는 Compat override 로 메시지/검증 로직을 �
 | 버전 | 주요 변경 |
 |------|-----------|
 | v1.7.x | 기본 DSL / Loader |
-| v1.8.0 (예시) | sommand 엔트리, Compat, Args 강화, NumberStrings 추가, README 갱신 |
+| v1.7.3 (예시) | sommand 엔트리, Compat, Args 강화, NumberStrings 추가, README 갱신 |
 
 최신 실제 Git 태그를 확인 후 위 버전 표를 맞춰 주세요.
 
