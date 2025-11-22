@@ -19,7 +19,7 @@ SommandAPI 는 Bukkit/Paper 환경에서 선언형 DSL 로 명령 트리를 정�
 ## 설치 (Installation)
 
 최신 릴리스 버전을 JitPack 에서 확인하세요: [SommandAPI Badge](https://jitpack.io/#emykr/SommandAPI)  
-(아래 예시는 가상의 `v1.7.3` 로 표기; 실제 사용 시 최신 버전으로 변경)
+
 
 ### Gradle (Kotlin DSL)
 
